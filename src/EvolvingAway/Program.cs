@@ -48,35 +48,27 @@ namespace EvolvingAway
             //Compiler checks we've got the right parameters
         }
 
-        static string HtmlEncode(string value)
-        { 
-            return HttpUtility.HtmlEncode(value);
-        }
+        //static string HtmlEncode(string value)
+        //{ 
+        //    return HttpUtility.HtmlEncode(value);
+        //}
 
-        public string RenderHtml(string someUserInput)
-        {
-            //Do lots of stuff with text
-            //it got encoded here:
-            someUserInput = HtmlEncode(someUserInput);
+        //public string RenderHtml(string someUserInput)
+        //{
+        //    //Do lots of stuff with text
+        //    //it got encoded here:
+        //    someUserInput = HtmlEncode(someUserInput);
 
-            //opps it got encoded twice
-            return "<b>" +  HtmlEncode(someUserInput) + "</b>";
-        }
+        //    //opps it got encoded twice
+        //    return "<b>" +  HtmlEncode(someUserInput) + "</b>";
+        //}
 
         public record UnsafeUserInput(string value);
-        public class EscapedSafeString
+        public record EscapedSafeString(string value);
+        
+        static EscapedSafeString HtmlEncode(string unescaped)
         {
-            public EscapedSafeString(UnsafeUserInput value)
-            {
-                Value = HttpUtility.HtmlEncode(value.value);
-            }
-
-            public string Value { get; init; }
-        }
-
-        static string HtmlEncode(string value)
-        {
-            return HttpUtility.HtmlEncode(value);
+            return new EscapedSafeString(HttpUtility.HtmlEncode(unescaped));
         }
 
         public string RenderHtml(UnsafeUserInput someUserInput)
@@ -89,5 +81,40 @@ namespace EvolvingAway
             return "<b>" + HtmlEncode(someUserInput) + "</b>";
         }
 
+    }
+
+    public class HtmlSafeEncodedString
+    {
+        public HtmlSafeEncodedString(){}
+
+        /// <summary>
+        /// Initialises with an untrusted string
+        /// </summary>
+        public HtmlSafeEncodedString(string untrusted) {
+            InitialiseFromUnTrusted(untrusted);
+        }
+
+        public string EncodedString { get; private set; }
+
+        /// <summary>
+        /// Html encodes the string. Use this when the string comes from an untrusted source.
+        /// </summary>
+        /// <param name="unencodedString"></param>
+        public void InitialiseFromUnTrusted(string unencodedString) {
+            if (string.IsNullOrEmpty(unencodedString)) 
+                EncodedString = unencodedString;            
+            else            
+                EncodedString = HttpUtility.HtmlEncode(unencodedString);
+        }
+
+        /// <summary>
+        /// Trusts the input, no further encoding is done. USE WITH CARE.
+        /// If you use this function repeat after me:
+        /// "I have checked the "encodedString" parameter and I personally gurantee that any mark up
+        /// contained within the string has been HtmlEncoded, or that it has come from a TRUSTED source."
+        /// </summary>
+        public void InitialiseFromTrusted(string encodedString) {
+            EncodedString = encodedString;
+        }
     }
 }
